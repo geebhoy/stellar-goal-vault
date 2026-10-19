@@ -35,8 +35,20 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function getRpcServer(rpcUrl: string): rpc.Server {
-  return new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http://') });
+// Internal implementation that can be overridden for testing
+let getRpcServerImpl: (rpcUrl: string) => rpc.Server = (rpcUrl: string) =>
+  new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http://') });
+
+export function getRpcServer(rpcUrl: string): rpc.Server {
+  return getRpcServerImpl(rpcUrl);
+}
+
+/**
+ * Test helper to inject a mock RPC server implementation.
+ * Only available in test environment.
+ */
+export function __setGetRpcServerImpl(impl: (rpcUrl: string) => rpc.Server): void {
+  getRpcServerImpl = impl;
 }
 
 function networkLabel(passphrase: string | undefined): string {
