@@ -1,11 +1,12 @@
 import { FormEvent, useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { MousePointer2, Download, Link as LinkIcon } from 'lucide-react';
+import { MousePointer2, Download, Link as LinkIcon, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Campaign, AppConfig } from '../types/campaign';
 import CopyButton from './CopyButton';
 import { AddressAvatar } from './AddressAvatar';
 import { EmptyState } from './EmptyState';
 import { CampaignImage } from './CampaignImage';
+import { TransactionState, getStatusLabel, getStatusMessage, isTerminalStatus } from '../lib/transactionStatus';
 
 const ContributorSummary = lazy(() =>
   import('./ContributorSummary').then((m) => ({ default: m.ContributorSummary })),
@@ -31,6 +32,10 @@ interface CampaignDetailPanelProps {
   onSoftDelete?: (campaignId: string) => Promise<void>;
   onRefund?: (campaignId: string, contributor: string) => Promise<void>;
   onClose?: () => void;
+  // Transaction state
+  transactionState?: TransactionState | undefined;
+  onRetryTransaction?: () => void;
+  onClearTransaction?: () => void;
 }
 
 const FEE_ESTIMATION_ERROR_CODES = new Set([
@@ -79,12 +84,17 @@ export function CampaignDetailPanel({
   onDisconnectWallet = () => {},
   onPledge = async () => {},
   onClaim = async () => {},
+  onSoftDelete = async () => {},
   onRefund = async () => {},
+  onClose = () => {},
+  // Transaction state
+  transactionState = undefined,
+  onRetryTransaction = () => {},
+  onClearTransaction = () => {},
 }: CampaignDetailPanelProps) {
   const [pledgeAmount, setPledgeAmount] = useState('25');
   const [pledgeToken, setPledgeToken] = useState('');
   const [refundContributor, setRefundContributor] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pledgeError, setPledgeError] = useState<string | null>(null);
   const [pledgeSuccess, setPledgeSuccess] = useState(false);
   const pledgeSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +104,26 @@ export function CampaignDetailPanel({
   const { addToast } = useToast();
   const pledgeErrorRef = useRef<HTMLDivElement | null>(null);
   const pledgeSuccessRef = useRef<HTMLDivElement | null>(null);
+
+  // Determine if a transaction is in progress based on transactionState prop
+  const isTransactionInProgress = transactionState !== undefined &&
+    (transactionState.status === 'pending' || transactionState.status === 'retryable');
+
+  // Determine if the form should be disabled
+  const isFormDisabled = isTransactionInProgress || isPledgePending || !walletReady;
+
+  // Get the appropriate status message
+  const transactionStatusMessage = transactionState ? getStatusMessage(transactionState) : null;
+
+  // Check if we should show retry button
+  const showRetry = transactionState !== undefined &&
+    (transactionState.status === 'retryable' || transactionState.status === 'failed');
+
+  // Check if we should show clear button for confirmed transactions
+  const showClear = transactionState !== undefined && isTerminalStatus(transactionState.status);
+
+  // Get status label for display
+  const statusLabel = transactionState ? getStatusLabel(transactionState.status) : null;
 
   const handleDownloadPng = useCallback(() => {
     if (!campaign) return;
@@ -211,7 +241,6 @@ export function CampaignDetailPanel({
       clearTimeout(pledgeSuccessTimerRef.current);
       pledgeSuccessTimerRef.current = null;
     }
-    setIsSubmitting(true);
     try {
       await onPledge(activeCampaign.id, Number(pledgeAmount), selectedToken);
       setPledgeAmount('25');
@@ -223,8 +252,6 @@ export function CampaignDetailPanel({
       }, 4000);
     } catch (error) {
       setPledgeError(describePledgeError(error));
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -234,20 +261,32 @@ export function CampaignDetailPanel({
   }
 
   async function handleRefund() {
-    setIsSubmitting(true);
     try {
       await onRefund(activeCampaign.id, refundContributor.trim());
     } finally {
-      setIsSubmitting(false);
+      // Transaction state is managed by parent
     }
   }
 
   async function handleClaim() {
-    setIsSubmitting(true);
     try {
       await onClaim(activeCampaign);
     } finally {
-      setIsSubmitting(false);
+      // Transaction state is managed by parent
+    }
+  }
+
+  function handleRetry() {
+    onRetryTransaction();
+    setPledgeError(null);
+  }
+
+  function handleClear() {
+    onClearTransaction();
+    setPledgeSuccess(false);
+    if (pledgeSuccessTimerRef.current !== null) {
+      clearTimeout(pledgeSuccessTimerRef.current);
+      pledgeSuccessTimerRef.current = null;
     }
   }
 
@@ -295,7 +334,7 @@ export function CampaignDetailPanel({
                 className="btn-ghost"
                 type="button"
                 onClick={onDisconnectWallet}
-                disabled={isSubmitting}
+                disabled={isTransactionInProgress}
               >
                 Disconnect
               </button>
@@ -307,7 +346,7 @@ export function CampaignDetailPanel({
               onClick={() => {
                 void onConnectWallet();
               }}
-              disabled={isSubmitting || isConnectingWallet}
+              disabled={isTransactionInProgress || isConnectingWallet}
             >
               {isConnectingWallet ? 'Connecting...' : 'Connect Wallet'}
             </button>
@@ -374,7 +413,7 @@ export function CampaignDetailPanel({
         </p>
       ) : null}
 
-      <form className="form-grid" aria-label="Pledge form" onSubmit={handlePledge} noValidate>
+      <form className="form-grid" aria-label="Pledge form" onSubmit={handlePledge} noValidate aria-busy={isTransactionInProgress}>
         <div className="form-field">
           <label htmlFor="pledge-amount">Amount</label>
           <input
@@ -386,6 +425,7 @@ export function CampaignDetailPanel({
             onChange={(e) => setPledgeAmount(e.target.value)}
             aria-description="pledge-amount-help"
             required
+            disabled={isFormDisabled}
           />
           <small id="pledge-amount-help" className="muted">
             Enter the amount you want to pledge.
@@ -398,30 +438,70 @@ export function CampaignDetailPanel({
             id="pledge-token"
             value={pledgeToken}
             onChange={(e) => setPledgeToken(e.target.value)}
+            disabled={isFormDisabled}
           >
             <option value="">{`Default (${activeCampaign.assetCode})`}</option>
             <option value={activeCampaign.assetCode}>{activeCampaign.assetCode}</option>
           </select>
         </div>
 
+        {transactionState && (
+          <div className="form-field transaction-status" style={{ gridColumn: '1 / -1' }}>
+            <div className={`status-display status-${transactionState.status}`}>
+              <span className="status-icon">
+                {transactionState.status === 'pending' && <Clock className="spinning" />}
+                {transactionState.status === 'confirmed' && <CheckCircle />}
+                {transactionState.status === 'failed' && <AlertCircle />}
+                {transactionState.status === 'retryable' && <RefreshCw />}
+              </span>
+              <div className="status-info">
+                <span className="status-label">{statusLabel}</span>
+                <span className="status-message">{transactionStatusMessage}</span>
+              </div>
+              <div className="status-actions">
+                {showRetry && (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleRetry}
+                    aria-label="Retry transaction"
+                  >
+                    <RefreshCw size={16} aria-hidden="true" /> Retry
+                  </button>
+                )}
+                {showClear && (
+                  <button
+                    type="button"
+                    className="btn-ghost"
+                    onClick={handleClear}
+                    aria-label="Dismiss transaction status"
+                  >
+                    Dismiss
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="form-actions">
           <button
             className="btn-primary"
             type="submit"
-            disabled={isSubmitting || isPledgePending || !walletReady}
-            aria-busy={isSubmitting || isPledgePending}
+            disabled={isFormDisabled}
+            aria-busy={isTransactionInProgress}
           >
-            {isSubmitting || isPledgePending ? 'Submitting...' : 'Pledge'}
+            {isTransactionInProgress ? 'Submitting...' : 'Pledge'}
           </button>
         </div>
 
-        {pledgeError ? (
+        {pledgeError && !transactionState && (
           <div ref={pledgeErrorRef} className="form-error" role="alert" tabIndex={-1}>
             {pledgeError}
           </div>
-        ) : null}
+        )}
 
-        {pledgeSuccess ? (
+        {pledgeSuccess && !transactionState && (
           <div
             ref={pledgeSuccessRef}
             className="form-success"
@@ -431,7 +511,7 @@ export function CampaignDetailPanel({
           >
             Your pledge was submitted successfully.
           </div>
-        ) : null}
+        )}
       </form>
 
       <div className="form-grid">
@@ -455,7 +535,7 @@ export function CampaignDetailPanel({
             className="btn-ghost"
             type="button"
             onClick={handleRefund}
-            disabled={isSubmitting || !walletReady}
+            disabled={isFormDisabled}
           >
             Refund
           </button>
@@ -467,7 +547,7 @@ export function CampaignDetailPanel({
           className="btn-primary"
           type="button"
           onClick={handleClaim}
-          disabled={isSubmitting || !walletReady}
+          disabled={isFormDisabled}
         >
           Claim funds
         </button>
