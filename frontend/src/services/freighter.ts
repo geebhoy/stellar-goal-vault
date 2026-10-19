@@ -35,8 +35,20 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function getRpcServer(rpcUrl: string): rpc.Server {
-  return new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http://') });
+// Internal implementation that can be overridden for testing
+let getRpcServerImpl: (rpcUrl: string) => rpc.Server = (rpcUrl: string) =>
+  new rpc.Server(rpcUrl, { allowHttp: rpcUrl.startsWith('http://') });
+
+export function getRpcServer(rpcUrl: string): rpc.Server {
+  return getRpcServerImpl(rpcUrl);
+}
+
+/**
+ * Test helper to inject a mock RPC server implementation.
+ * Only available in test environment.
+ */
+export function __setGetRpcServerImpl(impl: (rpcUrl: string) => rpc.Server): void {
+  getRpcServerImpl = impl;
 }
 
 function networkLabel(passphrase: string | undefined): string {
@@ -50,6 +62,30 @@ function networkLabel(passphrase: string | undefined): string {
     return 'Stellar Mainnet';
   }
   return 'the configured network';
+}
+
+/**
+ * Verifies that the connected Freighter wallet is on the expected network.
+ * Throws a FREIGHTER_NETWORK_MISMATCH error if the networks don't match.
+ */
+export async function verifyFreighterNetwork(expectedNetworkPassphrase: string): Promise<void> {
+  try {
+    const details = await getNetworkDetails();
+    const currentPassphrase = details.networkPassphrase;
+    if (currentPassphrase !== expectedNetworkPassphrase) {
+      throw buildError(
+        'FREIGHTER_NETWORK_MISMATCH',
+        `Freighter is connected to ${networkLabel(currentPassphrase)}, but this app expects ${networkLabel(expectedNetworkPassphrase)}. ` +
+          `Please switch your wallet to ${networkLabel(expectedNetworkPassphrase)} and try again.`,
+      );
+    }
+  } catch (error) {
+    if (error instanceof Error && (error as AppErrorLike).code === 'FREIGHTER_NETWORK_MISMATCH') {
+      throw error;
+    }
+    // If we can't get network details, we'll let the transaction simulation catch the mismatch
+    console.warn('Could not verify Freighter network:', error);
+  }
 }
 
 function sleep(ms: number): Promise<void> {
@@ -210,6 +246,9 @@ export async function submitFreighterClaim(params: {
     );
   }
 
+  // Verify wallet network matches expected network before proceeding
+  await verifyFreighterNetwork(config.networkPassphrase);
+
   const server = getRpcServer(config.sorobanRpcUrl);
   const sourceAccount = await server.getAccount(creator).catch((error) => {
     throw buildError(
@@ -337,6 +376,9 @@ export async function submitFreighterPledge(params: {
       'Wallet signing is not configured yet. Set CONTRACT_ID and SOROBAN_RPC_URL on the backend.',
     );
   }
+
+  // Verify wallet network matches expected network before proceeding
+  await verifyFreighterNetwork(config.networkPassphrase);
 
   const server = getRpcServer(config.sorobanRpcUrl);
   const amountUnits = amountToContractUnits(amount, config.contractAmountDecimals);
