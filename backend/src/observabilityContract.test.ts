@@ -137,6 +137,24 @@ beforeAll(async () => {
   initCampaignStore();
 });
 
+beforeEach(async () => {
+  // The health endpoints report degraded (503) unless the Soroban event
+  // indexer is healthy, and the indexer only starts inside startServer(),
+  // which these tests never reach. Stub it as healthy so the health payload
+  // reflects the signals under test rather than indexer state. This lives in
+  // beforeEach because afterEach restores all mocks.
+  vi.spyOn(await import('./services/eventIndexer'), 'getIndexerStatus').mockReturnValue({
+    lastSuccessfulPollTime: Date.now(),
+    lastKnownLedger: 1,
+    isHealthy: true,
+    consecutiveFailures: 0,
+    lagMs: 0,
+    freshness: 'fresh',
+    staleLagMs: 300000,
+    freshLagMs: 30000,
+  });
+});
+
 afterAll(() => {
   fs.rmSync(TEST_DB_PATH, { force: true });
 });

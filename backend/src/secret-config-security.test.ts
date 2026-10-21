@@ -510,7 +510,7 @@ describe('Secret config — .env.example files must not contain real secrets', (
     const content = fs.readFileSync(path.join(BACKEND, '.env.example'), 'utf-8');
     // CONTRACT_ID should appear and its value should be blank (not a real contract address)
     expect(content).toMatch(/CONTRACT_ID\s*=/);
-    const match = content.match(/^CONTRACT_ID\s*=\s*(.*)$/m);
+    const match = content.match(/^CONTRACT_ID[ \t]*=[ \t]*(.*)$/m);
     const value = (match?.[1] ?? '').trim();
     expect(
       value,
@@ -520,7 +520,7 @@ describe('Secret config — .env.example files must not contain real secrets', (
 
   it('backend .env.example has SERVER_PRIVATE_KEY absent or empty', () => {
     const content = fs.readFileSync(path.join(BACKEND, '.env.example'), 'utf-8');
-    const match = content.match(/^[^#\n]*SERVER_PRIVATE_KEY\s*=\s*(.*)$/m);
+    const match = content.match(/^[^#\n]*SERVER_PRIVATE_KEY[ \t]*=[ \t]*(.*)$/m);
     if (match) {
       const value = match[1].trim();
       expect(value, 'SERVER_PRIVATE_KEY in .env.example must not have a real value').toBe('');
@@ -530,7 +530,7 @@ describe('Secret config — .env.example files must not contain real secrets', (
 
   it('root .env.example has SERVER_PRIVATE_KEY absent or empty', () => {
     const content = fs.readFileSync(path.join(ROOT, '.env.example'), 'utf-8');
-    const match = content.match(/^[^#\n]*SERVER_PRIVATE_KEY\s*=\s*(.*)$/m);
+    const match = content.match(/^[^#\n]*SERVER_PRIVATE_KEY[ \t]*=[ \t]*(.*)$/m);
     if (match) {
       const value = match[1].trim();
       expect(value, 'SERVER_PRIVATE_KEY in root .env.example must not have a real value').toBe('');

@@ -92,6 +92,31 @@ import {
 
 export const app = express();
 
+// The campaign store owns the SQLite connection and is initialized on the first
+// request rather than at module load. Tests import `app` directly and assign
+// process.env.DB_PATH in their own module scope; ES module hoisting evaluates
+// those imports before this module's body runs, so resolving the database path
+// lazily is what lets each test file get the database it asked for. initDb()
+// and initCampaignStore() are idempotent, so the server entry point can keep
+// initializing eagerly via startServer().
+let campaignStoreReady = false;
+function ensureCampaignStoreReady(): void {
+  if (campaignStoreReady) return;
+  initCampaignStore();
+  campaignStoreReady = true;
+}
+
+app.use((_req, _res, next) => {
+  try {
+    ensureCampaignStoreReady();
+  } catch (error) {
+    // Leave campaignStoreReady false so a later request can retry, and let the
+    // health endpoints report the database as down.
+    logError(error, { event: 'campaign_store_init_failed' }, config.logLevel);
+  }
+  next();
+});
+
 // Assign request IDs before any middleware that may short-circuit the request
 // (for example CORS, body parsing, authentication, rate limiting, or docs).
 // The finish logger is installed here too so every handled request is logged.
@@ -1338,7 +1363,7 @@ let isShuttingDown = false;
 function startServer() {
   validateEnv();
   printStartupBanner();
-  initCampaignStore();
+  ensureCampaignStoreReady();
   startEventIndexer();
 
   // Initialize Redis cache in production

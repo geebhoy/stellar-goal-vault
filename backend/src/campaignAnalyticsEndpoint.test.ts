@@ -49,7 +49,7 @@ function seedCampaign(overrides: { targetAmount?: number } = {}) {
 }
 
 beforeAll(async () => {
-  fs.rmpSync(TEST_DB_PATH, { force: true });
+  fs.rmSync(TEST_DB_PATH, { force: true });
 
   ({ createCampaign, addPledge, initCampaignStore } = await import('./services/campaignStore'));
   ({ getDb } = await import('./services/db'));
@@ -59,7 +59,7 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
-  fs.rmpSync(TEST_DB_PATH, { force: true });
+  fs.rmSync(TEST_DB_PATH, { force: true });
 });
 
 beforeEach(() => {
@@ -74,7 +74,7 @@ describe('GET /api/campaigns/:id/analytics', () => {
   it('returns the analytics schema for a campaign with pledges', async () => {
     const campaign = seedCampaign();
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 50 });
-    addPledge(campaign.id, { contributor: CONTRIBUTOR_P, amount: 75 });
+    addPledge(campaign.id, { contributor: CONTRIBUTOR_B, amount: 75 });
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 100 });
 
     const response = await request(app).get(`/api/campaigns/${campaign.id}/analytics`);
@@ -89,14 +89,9 @@ describe('GET /api/campaigns/:id/analytics', () => {
       pledgeCount: 3,
       contributorCount: 2,
     });
-    expect(response.body.meta.pagination).toEqual({
-      page: 1,
-      limit: 20,
-      total: 2,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    });
+    // This read model takes no query parameters and therefore exposes no
+    // pagination metadata.
+    expect(response.body.meta).toBeUndefined();
   });
 
   it('reports the full gap and zero counts for a campaign without pledges', async () => {
@@ -112,68 +107,34 @@ describe('GET /api/campaigns/:id/analytics', () => {
       contributorCount: 0,
       status: 'open',
     });
-    expect(response.body.meta.pagination).toMatchObject({
-      page: 1,
-      limit: 20,
-      total: 0,
-      totalPages: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-    });
+    expect(response.body.meta).toBeUndefined();
   });
 
-  it('paginates the contributor list deterministically', async () => {
+  it('reports the full contributor count without pagination', async () => {
     const campaign = seedCampaign();
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 50 });
-    addPledge(campaign.id, { contributor: CONTRIBUTOR_P, amount: 75 });
+    addPledge(campaign.id, { contributor: CONTRIBUTOR_B, amount: 75 });
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 100 });
 
-    const first = await request(app).get(
-      `/api/campaigns/${campaign.id}/analytics?page=1&limit=`,
-    );
-    expect(first.status).toBe(200);
-    expect(first.body.data.contributors).toHaveLength(1);
-    expect(first.body.meta.pagination).toEqual({
-      page: 1,
-      limit: 1,
-      total: 2,
-      totalPages: 2,
-      hasNextPage: true,
-      hasPreviousPage: false,
-    });
+    const response = await request(app).get(`/api/campaigns/${campaign.id}/analytics`);
 
-    const second = await request(app).get(
-      `/api/campaigns/${campaign.id}/analytics?page=2&limit=`,
-    );
-    expect(second.status).toBe(200);
-    expect(second.body.data.contributors).toHaveLength(1);
-    expect(second.body.meta.pagination).toEqual({
-      page: 2,
-      limit: 1,
-      total: 2,
-      totalPages: 2,
-      hasNextPage: false,
-      hasPreviousPage: true,
-    });
-
-    // Deterministic ordering: page 1 + page 2 cover the full set with no overlap.
-    const ids = [
-      ...first.body.data.contributors.map((c: { contributor: string }) => c.contributor),
-      ...second.body.data.contributors.map((c: { contributor: string }) => c.contributor),
-    ];
-    expect(new Set(ids).size).toBe(2);
+    expect(response.status).toBe(200);
+    expect(response.body.data.contributorCount).toBe(2);
+    expect(response.body.data.pledgeCount).toBe(3);
+    expect(response.body.meta).toBeUndefined();
   });
 
-  it('clamps oversized limits to the maximum page size', async () => {
+  it('rejects any query parameter with a 400', async () => {
     const campaign = seedCampaign();
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 50 });
 
-    const response = await request(app).get(
-      `/api/campaigns/${campaign.id}/analytics?limit=100000`,
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.body.meta.pagination.limit).toBe(100);
+    for (const query of ['limit=100000', 'page=1', 'sort=amount']) {
+      const response = await request(app).get(
+        `/api/campaigns/${campaign.id}/analytics?${query}`,
+      );
+      expect(response.status, query).toBe(400);
+      expect(response.body.error.code).toBe('VALIDATION_ERROR');
+    }
   });
 
   it('rejects malformed pagination parameters with a 400', async () => {
