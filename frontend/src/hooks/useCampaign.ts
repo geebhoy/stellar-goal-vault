@@ -39,6 +39,8 @@ export function useCampaign(campaignId: string | undefined): UseCampaignResult {
     // suppressed because the promise is referenced from its own initializer.
     let promise!: Promise<void>;
     // eslint-disable-next-line prefer-const -- self-referenced by the finally block below
+    let promise: Promise<void>;
+>>>>>>> 34bbde1 (revert: restore the working tree to its pre-session state)
     promise = (async () => {
       setLoading(true);
       setError(null);
