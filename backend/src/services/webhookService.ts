@@ -5,10 +5,7 @@ import { config } from '../config';
 import { logError, logInfo } from '../logger';
 
 export type WebhookEvent =
-  | 'campaign_funded'
-  | 'campaign_failed'
-  | 'vault_claimed'
-  | 'pledge_refunded';
+  'campaign_funded' | 'campaign_failed' | 'vault_claimed' | 'pledge_refunded';
 
 export interface WebhookPayload {
   event: WebhookEvent;
@@ -223,8 +220,7 @@ export function clearDeadLetterQueue(): void {
 export async function retryDeadLetter(id: number, webhookUrlOverride?: string): Promise<boolean> {
   const db = getDb();
   const row = db.prepare(`SELECT * FROM webhook_dead_letter_queue WHERE id = ?`).get(id) as
-    | DeadLetterEntry
-    | undefined;
+    DeadLetterEntry | undefined;
 
   if (!row) {
     return false;

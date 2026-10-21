@@ -1,10 +1,7 @@
 import { getDb } from './db';
 
 export type NotificationType =
-  | 'new_pledge'
-  | 'campaign_funded'
-  | 'refund_available'
-  | 'creator_update';
+  'new_pledge' | 'campaign_funded' | 'refund_available' | 'creator_update';
 
 export interface Notification {
   id: number;

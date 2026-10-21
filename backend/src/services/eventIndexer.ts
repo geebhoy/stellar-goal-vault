@@ -53,8 +53,7 @@ function getLastProcessedLedger(): number {
   try {
     const db = getDb();
     const row = db.prepare(`SELECT value FROM kv_store WHERE key = ?`).get(LAST_LEDGER_KEY) as
-      | { value: string }
-      | undefined;
+      { value: string } | undefined;
     return row ? Number(row.value) : 0;
   } catch {
     return 0;

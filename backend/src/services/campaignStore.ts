@@ -757,8 +757,7 @@ export function getCampaign(
 ): CampaignRecord | undefined {
   const db = getDb();
   const row = db.prepare(`SELECT * FROM campaigns WHERE id = ?`).get(campaignId) as
-    | CampaignRow
-    | undefined;
+    CampaignRow | undefined;
 
   if (row) {
     const now = nowInMilliseconds();
