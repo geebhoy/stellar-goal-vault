@@ -269,7 +269,9 @@ describe('CampaignDetailPanel – Pledge Flow States', () => {
 
     await user.click(screen.getByRole('button', { name: /pledge/i }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent(/pledge was submitted successfully/i);
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      /pledge was submitted successfully/i,
+    );
   });
 
   it('auto-dismisses the success message after 4 seconds', async () => {

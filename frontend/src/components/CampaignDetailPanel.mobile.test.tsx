@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { CampaignDetailPanel } from './CampaignDetailPanel';
 import { Campaign, AppConfig } from '../types/campaign';
 
@@ -132,12 +132,14 @@ describe('CampaignDetailPanel - Mobile Touch Targets', () => {
       />,
     );
 
-    // Check that detail stats are rendered
-    expect(screen.getByText('Campaign ID')).toBeInTheDocument();
-    expect(screen.getByText('Creator')).toBeInTheDocument();
-    expect(screen.getByText('Asset')).toBeInTheDocument();
-    expect(screen.getByText('Remaining')).toBeInTheDocument();
-    expect(screen.getByText('Active pledges')).toBeInTheDocument();
+    // Check that detail stats are rendered. They are scoped to the campaign
+    // summary group because the pledge form labels its own "Asset" selector.
+    const summary = screen.getByRole('group', { name: 'Campaign summary' });
+    expect(within(summary).getByText('Campaign ID')).toBeInTheDocument();
+    expect(within(summary).getByText('Creator')).toBeInTheDocument();
+    expect(within(summary).getByText('Asset')).toBeInTheDocument();
+    expect(within(summary).getByText('Remaining')).toBeInTheDocument();
+    expect(within(summary).getByText('Active pledges')).toBeInTheDocument();
   });
 
   it('renders wallet status section with proper structure', () => {
