@@ -37,8 +37,8 @@ export function useCampaign(campaignId: string | undefined): UseCampaignResult {
     // Declared before the async IIFE so the `finally` block below can compare
     // the in-flight entry against this exact promise. `prefer-const` is
     // suppressed because the promise is referenced from its own initializer.
-    // eslint-disable-next-line prefer-const -- referenced from its own initializer
     let promise!: Promise<void>;
+    // eslint-disable-next-line prefer-const -- referenced from its own initializer
     promise = (async () => {
       setLoading(true);
       setError(null);
