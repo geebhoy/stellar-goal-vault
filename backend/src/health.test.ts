@@ -391,7 +391,9 @@ describe('GET /api/health/deep', () => {
     it('returns standard 500 error envelope and does not leak internal details when deep health check throws', async () => {
       // Force the db check to throw rather than return a struct
       vi.spyOn(await import('./services/db'), 'checkDbHealth').mockImplementation(() => {
-        throw new Error('unexpected internal failure with secret SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+        throw new Error(
+          'unexpected internal failure with secret SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        );
       });
 
       const res = await request(app).get('/api/health/deep');

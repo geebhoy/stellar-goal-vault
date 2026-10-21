@@ -1334,6 +1334,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
+        "500":
+          description: Unexpected server failure (INTERNAL_SERVER_ERROR). Internal details
+            are logged and are not returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "503":
           description: Service is degraded
           content:
@@ -1354,6 +1361,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DeepHealthResponse"
+        "500":
+          description: Unexpected server failure (INTERNAL_SERVER_ERROR). Internal details
+            are logged and are not returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
         "503":
           description: One or more components are unhealthy
           content:

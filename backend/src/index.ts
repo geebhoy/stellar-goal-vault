@@ -447,97 +447,101 @@ app.get('/api/health', (req: Request, res: Response, next: express.NextFunction)
   }
 });
 
-app.get('/api/health/deep', applyRateLimit(1000), async (req: Request, res: Response, next: express.NextFunction) => {
-  const start = process.hrtime();
-  try {
-    const database = checkDbHealth();
-    const hasContractId = !!config.contractId;
-    let sorobanHealthy = false;
-
+app.get(
+  '/api/health/deep',
+  applyRateLimit(1000),
+  async (req: Request, res: Response, next: express.NextFunction) => {
+    const start = process.hrtime();
     try {
-      if (config.sorobanRpcUrl) {
-        const response = await fetch(config.sorobanRpcUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'getHealth',
-            id: 1,
-          }),
-          signal: AbortSignal.timeout(5000),
-        });
-        sorobanHealthy = response.ok || response.status < 500;
+      const database = checkDbHealth();
+      const hasContractId = !!config.contractId;
+      let sorobanHealthy = false;
+
+      try {
+        if (config.sorobanRpcUrl) {
+          const response = await fetch(config.sorobanRpcUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'getHealth',
+              id: 1,
+            }),
+            signal: AbortSignal.timeout(5000),
+          });
+          sorobanHealthy = response.ok || response.status < 500;
+        }
+      } catch {
+        sorobanHealthy = false;
       }
-    } catch {
-      sorobanHealthy = false;
+
+      const indexer = getIndexerStatus();
+      // Align overall with component.indexer.status (isHealthy includes freshness/lag).
+      const allHealthy = database.reachable && hasContractId && sorobanHealthy && indexer.isHealthy;
+
+      const end = process.hrtime(start);
+      const latencyMs = Number(((end[0] * 1e9 + end[1]) / 1e6).toFixed(3));
+
+      logInfo('health_check', {
+        operation: 'health_check_deep',
+        outcome: allHealthy ? 'success' : 'failure',
+        latency_ms: latencyMs,
+        db_reachable: database.reachable,
+        soroban_healthy: sorobanHealthy,
+        indexer_healthy: indexer.isHealthy,
+        indexer_freshness: indexer.freshness,
+        indexer_lag_ms: indexer.lagMs,
+        has_contract_id: hasContractId,
+      });
+
+      const memUsage = process.memoryUsage();
+      const memory = {
+        rss: memUsage.rss,
+        heapUsed: memUsage.heapUsed,
+        heapTotal: memUsage.heapTotal,
+        external: memUsage.external,
+      };
+
+      res.status(allHealthy ? 200 : 503).json({
+        overall: allHealthy ? 'up' : 'down',
+        timestamp: new Date().toISOString(),
+        uptimeSeconds: Number(process.uptime().toFixed(3)),
+        memory,
+        components: {
+          db: {
+            status: database.reachable ? 'up' : 'down',
+            details: database.reachable ? 'SQLite database reachable' : database.error,
+          },
+          soroban: {
+            status: sorobanHealthy ? 'up' : 'down',
+            details: config.sorobanRpcUrl
+              ? 'Soroban RPC reachable'
+              : 'Soroban RPC URL not configured',
+          },
+          contract: {
+            status: hasContractId ? 'up' : 'down',
+            details: hasContractId ? 'CONTRACT_ID configured' : 'CONTRACT_ID not set',
+          },
+          indexer: {
+            status: indexer.isHealthy ? 'up' : 'down',
+            details: indexer,
+          },
+        },
+      });
+    } catch (error) {
+      const end = process.hrtime(start);
+      const latencyMs = Number(((end[0] * 1e9 + end[1]) / 1e6).toFixed(3));
+      logError(error, {
+        event: 'health_check_error',
+        operation: 'health_check_deep',
+        outcome: 'failure',
+        latency_ms: latencyMs,
+        requestId: (req as RequestWithId).requestId,
+      });
+      return next(error);
     }
-
-    const indexer = getIndexerStatus();
-    // Align overall with component.indexer.status (isHealthy includes freshness/lag).
-    const allHealthy = database.reachable && hasContractId && sorobanHealthy && indexer.isHealthy;
-
-    const end = process.hrtime(start);
-    const latencyMs = Number(((end[0] * 1e9 + end[1]) / 1e6).toFixed(3));
-
-    logInfo('health_check', {
-      operation: 'health_check_deep',
-      outcome: allHealthy ? 'success' : 'failure',
-      latency_ms: latencyMs,
-      db_reachable: database.reachable,
-      soroban_healthy: sorobanHealthy,
-      indexer_healthy: indexer.isHealthy,
-      indexer_freshness: indexer.freshness,
-      indexer_lag_ms: indexer.lagMs,
-      has_contract_id: hasContractId,
-    });
-
-    const memUsage = process.memoryUsage();
-    const memory = {
-      rss: memUsage.rss,
-      heapUsed: memUsage.heapUsed,
-      heapTotal: memUsage.heapTotal,
-      external: memUsage.external,
-    };
-
-    res.status(allHealthy ? 200 : 503).json({
-      overall: allHealthy ? 'up' : 'down',
-      timestamp: new Date().toISOString(),
-      uptimeSeconds: Number(process.uptime().toFixed(3)),
-      memory,
-      components: {
-        db: {
-          status: database.reachable ? 'up' : 'down',
-          details: database.reachable ? 'SQLite database reachable' : database.error,
-        },
-        soroban: {
-          status: sorobanHealthy ? 'up' : 'down',
-          details: config.sorobanRpcUrl
-            ? 'Soroban RPC reachable'
-            : 'Soroban RPC URL not configured',
-        },
-        contract: {
-          status: hasContractId ? 'up' : 'down',
-          details: hasContractId ? 'CONTRACT_ID configured' : 'CONTRACT_ID not set',
-        },
-        indexer: {
-          status: indexer.isHealthy ? 'up' : 'down',
-          details: indexer,
-        },
-      },
-    });
-  } catch (error) {
-    const end = process.hrtime(start);
-    const latencyMs = Number(((end[0] * 1e9 + end[1]) / 1e6).toFixed(3));
-    logError(error, {
-      event: 'health_check_error',
-      operation: 'health_check_deep',
-      outcome: 'failure',
-      latency_ms: latencyMs,
-      requestId: (req as RequestWithId).requestId,
-    });
-    return next(error);
-  }
-});
+  },
+);
 
 app.get('/api/campaigns', async (req: Request, res: Response, next: express.NextFunction) => {
   try {
