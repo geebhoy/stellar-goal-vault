@@ -38,7 +38,7 @@ const mocks = vi.hoisted(() => {
     signTransaction: vi.fn(),
   };
 
-  // Stellar SDK mock - defined inline to avoid hoisting issues
+  // Stellar SDK mock
   const stellarSdkMock = {
     rpc: {
       Server: vi.fn().mockImplementation(() => mockServer),
@@ -80,9 +80,19 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-// Apply mocks - use the hoisted values
+// Apply mocks
 vi.mock('@stellar/freighter-api', () => mocks.freighterMocks);
 vi.mock('@stellar/stellar-sdk', () => mocks.stellarSdkMock);
+
+// Mock freighter module with test implementations
+vi.mock('./freighter', async () => {
+  const actual = await vi.importActual('./freighter');
+  return {
+    ...actual,
+    getRpcServer: vi.fn(() => mocks.mockServer),
+    __setGetRpcServerImpl: vi.fn(),
+  };
+});
 
 const mockServer = mocks.mockServer;
 const mockAddressInstance = mocks.mockAddressInstance;
