@@ -722,22 +722,14 @@ describe('Secret config — validateEnv additional edge cases', () => {
 
   // ── API_KEYS whitespace-only tokens ───────────────────────────────────────
   it('rejects production when every API_KEYS token is only spaces after splitting', () => {
-    // "  ,   ,  " splits to ['  ', '   ', '  '] then filter(Boolean) keeps them all
-    // because non-empty strings are truthy — but the spaces-only check in validateEnv
-    // uses filter(Boolean) which keeps whitespace strings.
-    // This documents the ACTUAL behaviour: whitespace tokens DO pass filter(Boolean).
-    // The correct production guard is therefore to use trimmed tokens.
-    // validateEnv uses: (data.API_KEYS || '').split(',').filter(Boolean)
-    // '  ,   ,  '.split(',') = ['  ', '   ', '  '] — all truthy, so length = 3 → PASSES.
-    // This is a known limitation: whitespace-padded API_KEYS passes validateEnv.
-    // The security risk: no real key, but auth middleware will receive those whitespace keys
-    // and only reject them at runtime (the key in the Bearer token won't match).
-    // We document this as a known gap by asserting the CURRENT behavior:
+    // "  ,   ,  " splits to ['  ', '   ', '  ']. The tokens are non-empty
+    // strings, but they contain no usable key material.
+    //
+    // validateEnv has since been strengthened to trim the tokens and drop the
+    // empty ones, so a list of whitespace-only entries now counts as "no API
+    // keys configured" and is rejected in production.
     const env = { ...VALID_PROD_ENV, API_KEYS: '  ,   ,  ' };
-    // Current: filter(Boolean) keeps whitespace-only tokens → 3 entries → does NOT throw
-    // This test is a DOCUMENTATION test. If validateEnv is strengthened to trim tokens,
-    // update this test to expect a throw.
-    expect(() => validateEnv(env)).not.toThrow();
+    expect(() => validateEnv(env)).toThrow(/API_KEYS is required in production/);
   });
 
   it('rejects production when API_KEYS is only commas (filter produces empty array)', () => {

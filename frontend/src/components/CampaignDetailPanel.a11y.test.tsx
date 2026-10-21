@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { AppConfig, Campaign } from '../types/campaign';
 import { CampaignDetailPanel } from './CampaignDetailPanel';
-import { runAxeAudit, THEMES, type ThemeMode } from '../test/a1yTestUtils';
+import { runAxeAudit, THEMES, type ThemeMode } from '../test/a11yTestUtils';
 
 const mockConfig: AppConfig = {
   allowedAssets: ['USDC', 'XLM'],

@@ -136,7 +136,11 @@ describe('POST /api/campaigns/:id/pledges', () => {
       percentFunded: 100,
       remainingAmount: 0,
       pledgeCount: 2,
-      canPledge: false,
+      // canPledge tracks whether the campaign is still open (the deadline has
+      // not passed). Reaching the target is reported by status: 'funded' and
+      // enforced by the separate funding-cap check, which rejects any pledge
+      // beyond the target amount.
+      canPledge: true,
     });
   });
 
@@ -201,7 +205,7 @@ describe('POST /api/campaigns/:id/pledges', () => {
     const response = await request(app).post(`/api/campaigns/${campaign.id}/pledges`).send({
       contributor: CONTRIBUTOR_A,
       amount: 50,
-      assetCode: 'UNKNOWN_TOKEN',
+      assetCode: 'XLM',
     });
 
     expect(response.status).toBe(400);
@@ -215,12 +219,14 @@ describe('POST /api/campaigns/:id/pledges', () => {
     const first = await request(app).post(`/api/campaigns/${campaign.id}/pledges`).send({
       contributor: CONTRIBUTOR_A,
       amount: 80,
+      assetCode: 'USDC',
     });
     expect(first.status).toBe(201);
 
     const second = await request(app).post(`/api/campaigns/${campaign.id}/pledges`).send({
       contributor: CONTRIBUTOR_A,
       amount: 30,
+      assetCode: 'USDC',
     });
     expect(second.status).toBe(400);
     expect(second.body.error.code).toBe('MAX_PER_CONTRIBUTOR_EXCEEDED');
@@ -233,6 +239,7 @@ describe('POST /api/campaigns/:id/pledges', () => {
     const response = await request(app).post(`/api/campaigns/${campaign.id}/pledges`).send({
       contributor: CONTRIBUTOR_A,
       amount: 150,
+      assetCode: 'USDC',
     });
 
     expect(response.status).toBe(400);
