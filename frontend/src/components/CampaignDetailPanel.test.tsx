@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { CampaignDetailPanel } from './CampaignDetailPanel';
 import { AppConfig, Campaign } from '../types/campaign';
-import { TransactionState } from '../lib/transactionStatus';
 vi.mock('./ContributorSummary', () => ({
   ContributorSummary: () => <div data-testid="contributor-summary-mock" />,
 }));

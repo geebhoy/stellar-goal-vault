@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -15,12 +15,9 @@ import {
   TransactionState,
   createTransactionState,
   confirmTransaction,
-  failTransaction,
-  retryTransaction,
+  canRetry,
   isInProgress,
-  isRetryableError,
   createErrorState,
-  isTerminalStatus,
 } from './lib/transactionStatus';
 
 // Heavy panel components are lazy-loaded so they do not block the initial
@@ -866,7 +863,7 @@ function App() {
     const key = getTransactionKey(campaignId, actionType);
     setTransactionStates((prev) => {
       const current = prev[key];
-      if (!current || !isRetryableError({ code: current.status })) return prev;
+      if (!current || !canRetry(current.status)) return prev;
 
       return {
         ...prev,
