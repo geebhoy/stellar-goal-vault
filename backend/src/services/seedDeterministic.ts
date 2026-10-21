@@ -77,6 +77,16 @@ const BASE_PLEDGES: SeedPledge[] = [
     assetCode: 'XLM',
     createdAt: FIXED_NOW - 150,
   },
+  {
+    // Every base campaign needs a matching pledge row, otherwise
+    // campaigns.pledged_amount drifts away from the sum of its
+    // non-refunded pledges.
+    campaignId: '3',
+    contributor: 'GAFOA3RM2HI3NC4ZJVOQ42EEFZI6ZOXYP6BWACB5CNJR3WR3WGCUKXDF',
+    amount: 300,
+    assetCode: 'USDC',
+    createdAt: FIXED_NOW - 100,
+  },
 ];
 
 // Deterministic status/asset rotation used to extend past the 3 base campaigns.

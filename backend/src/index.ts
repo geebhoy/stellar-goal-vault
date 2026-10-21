@@ -80,7 +80,7 @@ import {
   parseContributorPledgesQuery,
 } from './validation/schemas';
 import { generateOpenApiDocument } from './openapi';
-import { logError, logInfo, logger, summarizeSecretConfig } from './logger';
+import { logError, logInfo, summarizeSecretConfig } from './logger';
 import {
   buildCampaignCacheKey,
   getCampaignCacheEntry,
@@ -545,8 +545,14 @@ app.get('/api/campaigns', async (req: Request, res: Response, next: express.Next
       .map((k) => `${k}=${(req.query as Record<string, unknown>)[k]}`)
       .join('&');
     const cacheKey = buildCampaignCacheKey(qs);
+    // The `status` filter is evaluated against the current time (open/failed
+    // depend on whether the deadline has passed), so the *set* of campaigns a
+    // filtered list contains changes as the clock advances. Caching such a
+    // response would keep serving a stale membership list, so filtered lists
+    // bypass the cache entirely.
+    const cacheable = params.status === undefined;
 
-    const cached = await getCampaignCacheEntry(cacheKey);
+    const cached = cacheable ? await getCampaignCacheEntry(cacheKey) : undefined;
     if (cached) {
       const cachedData = JSON.parse(cached) as {
         data: CampaignListItem[];
@@ -559,12 +565,26 @@ app.get('/api/campaigns', async (req: Request, res: Response, next: express.Next
           hasNextPage: boolean;
         };
       };
+      // `progress` is time-dependent: canPledge/canClaim/status flip when the
+      // deadline passes, so replaying it from the cache would serve a stale
+      // lifecycle state for up to the cache TTL. Recompute it per request and
+      // keep the cached pledge count so no extra query is issued.
+      const data = cachedData.data.map((campaign) => ({
+        ...campaign,
+        progress: calculateProgress(campaign, undefined, campaign.progress.pledgeCount),
+      }));
       res.setHeader('Cache-Control', 'max-age=30');
       res.setHeader('X-Cache', 'HIT');
       res.setHeader('X-Total-Count', String(cachedData.pagination.total));
       res.setHeader('Content-Type', 'application/json');
       // The cached payload is shared, but correlation IDs are per request.
-      res.send(JSON.stringify({ ...cachedData, requestId: (req as RequestWithId).requestId }));
+      res.send(
+        JSON.stringify({
+          data,
+          pagination: cachedData.pagination,
+          requestId: (req as RequestWithId).requestId,
+        }),
+      );
       return;
     }
 
@@ -611,10 +631,12 @@ app.get('/api/campaigns', async (req: Request, res: Response, next: express.Next
       pagination,
     });
 
-    await setCampaignCacheEntry(cacheKey, responseBody);
+    if (cacheable) {
+      await setCampaignCacheEntry(cacheKey, responseBody);
+    }
 
     res.setHeader('Cache-Control', 'max-age=30');
-    res.setHeader('X-Cache', 'MISS');
+    res.setHeader('X-Cache', cacheable ? 'MISS' : 'BYPASS');
     res.setHeader('X-Total-Count', String(totalCount));
     res.setHeader('Content-Type', 'application/json');
     res.send(
@@ -671,12 +693,20 @@ app.get('/api/campaigns/:id', async (req: Request, res: Response, next: express.
     const cacheKey = `campaigns:detail:${parsedId.value}`;
     const cached = await getCampaignCacheEntry(cacheKey);
     if (cached) {
-      const cachedData = JSON.parse(cached) as { data: unknown };
+      const cachedData = JSON.parse(cached) as { data: CampaignListItem };
+      // `progress` depends on the current time (status/canPledge/canClaim
+      // flip when the deadline passes), so it must be recomputed on every
+      // request instead of being replayed from the cache.
+      const { progress: cachedProgress, ...campaign } = cachedData.data;
+      const data = {
+        ...campaign,
+        progress: calculateProgress(campaign, undefined, cachedProgress.pledgeCount),
+      };
       res.setHeader('Cache-Control', 'max-age=30');
       res.setHeader('X-Cache', 'HIT');
       res.setHeader('Content-Type', 'application/json');
       // The cached payload is shared, but correlation IDs are per request.
-      res.send(JSON.stringify({ ...cachedData, requestId }));
+      res.send(JSON.stringify({ data, requestId }));
       return;
     }
 
