@@ -123,12 +123,13 @@ export function CampaignDetailPanel({
   // configured passphrase we must block submission and surface a recovery path.
   const appNetworkPassphrase =
     appConfig?.networkPassphrase ?? appConfig?.soroban?.networkPassphrase ?? null;
-  const activeWalletNetworkPassphrase = walletNetworkPassphrase ?? appConfig?.walletNetworkPassphrase ?? null;
+  const activeWalletNetworkPassphrase =
+    walletNetworkPassphrase ?? appConfig?.walletNetworkPassphrase ?? null;
   const hasNetworkMismatch = Boolean(
     connectedWallet &&
-      appNetworkPassphrase &&
-      activeWalletNetworkPassphrase &&
-      appNetworkPassphrase !== activeWalletNetworkPassphrase,
+    appNetworkPassphrase &&
+    activeWalletNetworkPassphrase &&
+    appNetworkPassphrase !== activeWalletNetworkPassphrase,
   );
   const networkMismatchMessage = hasNetworkMismatch
     ? `Network mismatch: your wallet is on ${networkName({ ...(appConfig ?? {}), networkPassphrase: activeWalletNetworkPassphrase } as AppConfig)} but this app uses ${networkName(appConfig)}. Switch your Freighter network to ${networkName(appConfig)} and reconnect.`
@@ -142,18 +143,14 @@ export function CampaignDetailPanel({
 
   // The form is locked while a transaction is in flight, while the parent reports
   // a pledge in flight, and while the wallet integration is not ready.
-  const isFormDisabled =
-    isTransactionInProgress || isSubmitting || isPledgePending || !walletReady;
+  const isFormDisabled = isTransactionInProgress || isSubmitting || isPledgePending || !walletReady;
 
-  const transactionStatusMessage = transactionState
-    ? getStatusMessage(transactionState)
-    : null;
+  const transactionStatusMessage = transactionState ? getStatusMessage(transactionState) : null;
   const statusLabel = transactionState ? getStatusLabel(transactionState.status) : null;
   const showRetry =
     transactionState !== undefined &&
     (transactionState.status === 'retryable' || transactionState.status === 'failed');
-  const showClear =
-    transactionState !== undefined && isTerminalStatus(transactionState.status);
+  const showClear = transactionState !== undefined && isTerminalStatus(transactionState.status);
 
   const handleDownloadPng = useCallback(() => {
     if (!campaign) return;
@@ -264,7 +261,7 @@ export function CampaignDetailPanel({
   // pledge button instead of only relying on the toast.
   const selectedToken = pledgeToken || activeCampaign.assetCode;
   const availableTokens = Array.from(
-    new Set([ ...(activeCampaign.acceptedTokens ?? []), activeCampaign.assetCode ]),
+    new Set([...(activeCampaign.acceptedTokens ?? []), activeCampaign.assetCode]),
   );
 
   async function submitPledge() {
@@ -510,7 +507,11 @@ export function CampaignDetailPanel({
               disabled={isFormDisabled}
             />
           </label>
-          <button type="button" onClick={handleRefund} disabled={isFormDisabled || hasNetworkMismatch}>
+          <button
+            type="button"
+            onClick={handleRefund}
+            disabled={isFormDisabled || hasNetworkMismatch}
+          >
             Refund
           </button>
         </div>

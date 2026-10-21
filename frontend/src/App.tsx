@@ -779,7 +779,10 @@ function App() {
   /**
    * Checks if a transaction is in progress for the given campaign and action.
    */
-  function isTransactionInProgress(campaignId: string, actionType: 'pledge' | 'claim' | 'refund'): boolean {
+  function isTransactionInProgress(
+    campaignId: string,
+    actionType: 'pledge' | 'claim' | 'refund',
+  ): boolean {
     const key = getTransactionKey(campaignId, actionType);
     const state = transactionStates[key];
     return state !== undefined && isInProgress(state.status);
@@ -788,7 +791,10 @@ function App() {
   /**
    * Gets the transaction state for a campaign/action.
    */
-  function getTransactionState(campaignId: string, actionType: 'pledge' | 'claim' | 'refund'): TransactionState | undefined {
+  function getTransactionState(
+    campaignId: string,
+    actionType: 'pledge' | 'claim' | 'refund',
+  ): TransactionState | undefined {
     const key = getTransactionKey(campaignId, actionType);
     return transactionStates[key];
   }
@@ -810,7 +816,7 @@ function App() {
   function completeTransaction(
     campaignId: string,
     actionType: 'pledge' | 'claim' | 'refund',
-    result: { transactionHash: string; confirmedAt: number } | Error
+    result: { transactionHash: string; confirmedAt: number } | Error,
   ): void {
     const key = getTransactionKey(campaignId, actionType);
     setTransactionStates((prev) => {
@@ -846,7 +852,10 @@ function App() {
   /**
    * Retries a failed/retryable transaction.
    */
-  function retryTransactionAction(campaignId: string, actionType: 'pledge' | 'claim' | 'refund'): void {
+  function retryTransactionAction(
+    campaignId: string,
+    actionType: 'pledge' | 'claim' | 'refund',
+  ): void {
     const key = getTransactionKey(campaignId, actionType);
     setTransactionStates((prev) => {
       const current = prev[key];
@@ -1012,7 +1021,9 @@ function App() {
               onSoftDelete={handleSoftDelete}
               onRefund={handleRefund}
               // Transaction state
-              transactionState={selectedCampaignId ? getTransactionState(selectedCampaignId, 'pledge') : undefined}
+              transactionState={
+                selectedCampaignId ? getTransactionState(selectedCampaignId, 'pledge') : undefined
+              }
               onRetryTransaction={() => {
                 if (selectedCampaignId) retryTransactionAction(selectedCampaignId, 'pledge');
               }}

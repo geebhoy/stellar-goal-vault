@@ -177,11 +177,7 @@ describe('CampaignDetailPanel – Pledge Flow States', () => {
     } = {},
   ) {
     const campaign: Campaign = { ...mockCampaign, ...campaignOverrides };
-    const {
-      onPledge,
-      transactionState,
-      connectedWallet: wallet = connectedWallet,
-    } = extraProps;
+    const { onPledge, transactionState, connectedWallet: wallet = connectedWallet } = extraProps;
     return render(
       <BrowserRouter>
         <CampaignDetailPanel

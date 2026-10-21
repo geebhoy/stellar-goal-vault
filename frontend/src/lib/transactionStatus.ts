@@ -26,7 +26,7 @@ export interface TransactionState {
  */
 export function createTransactionState(
   campaignId: string,
-  actionType: 'pledge' | 'claim' | 'refund'
+  actionType: 'pledge' | 'claim' | 'refund',
 ): TransactionState {
   const now = Date.now();
   return {
@@ -45,7 +45,7 @@ export function createTransactionState(
 export function confirmTransaction(
   state: TransactionState,
   transactionHash: string,
-  confirmedAt: number
+  confirmedAt: number,
 ): TransactionState {
   return {
     ...state,
@@ -163,7 +163,7 @@ export function isRetryableError(error: unknown): boolean {
 export function createErrorState(
   campaignId: string,
   actionType: 'pledge' | 'claim' | 'refund',
-  error: unknown
+  error: unknown,
 ): TransactionState {
   const baseState = createTransactionState(campaignId, actionType);
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';
