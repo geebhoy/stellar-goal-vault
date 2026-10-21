@@ -139,6 +139,7 @@ export interface AppConfig {
   networkPassphrase: string;
   contractAmountDecimals: number;
   walletIntegrationReady: boolean;
+  walletNetworkPassphrase?: string | null;
   assetAddresses: Record<string, string>;
 }
 

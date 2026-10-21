@@ -71,4 +71,26 @@ describe('OpenAPI documentation endpoints', () => {
       expect(spec.paths[pathName]).toBeDefined();
     }
   });
+
+  it('documents pledge errors with the shared ApiError envelope', async () => {
+    const response = await request(app).get('/api/openapi.json').expect(200);
+    const pledgePath = response.body.paths['/api/campaigns/{id}/pledges'];
+    const errorStatuses = {
+      get: ['400', '404', '500'],
+      post: ['400', '404', '413', '429', '500'],
+    };
+
+    for (const [method, statuses] of Object.entries(errorStatuses)) {
+      const operation = pledgePath[method];
+      for (const status of statuses) {
+        expect(
+          operation.responses[status].content['application/json'].schema.$ref,
+        ).toBe('#/components/schemas/ApiError');
+      }
+      expect(operation.description).toContain('INTERNAL_SERVER_ERROR');
+    }
+
+    expect(pledgePath.post.description).toContain('INVALID_CAMPAIGN_STATE');
+    expect(pledgePath.post.description).toContain('CAMPAIGN_FUNDING_CAP_EXCEEDED');
+  });
 });
