@@ -129,9 +129,7 @@ describe('GET /api/campaigns/:id/analytics', () => {
     addPledge(campaign.id, { contributor: CONTRIBUTOR_A, amount: 50 });
 
     for (const query of ['limit=100000', 'page=1', 'sort=amount']) {
-      const response = await request(app).get(
-        `/api/campaigns/${campaign.id}/analytics?${query}`,
-      );
+      const response = await request(app).get(`/api/campaigns/${campaign.id}/analytics?${query}`);
       expect(response.status, query).toBe(400);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
     }
@@ -141,9 +139,7 @@ describe('GET /api/campaigns/:id/analytics', () => {
     const campaign = seedCampaign();
 
     for (const query of ['page=0', 'page=-1', 'page=abc', 'limit=0', 'limit=-5', 'limit=abc']) {
-      const response = await request(app).get(
-        `/api/campaigns/${campaign.id}/analytics?${query}`,
-      );
+      const response = await request(app).get(`/api/campaigns/${campaign.id}/analytics?${query}`);
       expect(response.status, query).toBe(400);
       expect(response.body.error.code).toBe('VALIDATION_ERROR');
     }
@@ -164,9 +160,7 @@ describe('GET /api/campaigns/:id/analytics', () => {
   it('rejects unsupported query parameters instead of silently ignoring them', async () => {
     const campaign = seedCampaign();
 
-    const response = await request(app).get(
-      `/api/campaigns/${campaign.id}/analytics?sort=desc`,
-    );
+    const response = await request(app).get(`/api/campaigns/${campaign.id}/analytics?sort=desc`);
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('VALIDATION_ERROR');

@@ -390,7 +390,6 @@ function App() {
     await Promise.all([refreshHistory(campaignId), refreshSelectedCampaign(campaignId)]);
   }
 
-
   const initialParamIdRef = useRef(paramId);
 
   useEffect(() => {

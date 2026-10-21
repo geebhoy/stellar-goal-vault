@@ -2,12 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  getDb,
-  initDb,
-  migrate,
-  resetDbForTests,
-} from './index';
+import { getDb, initDb, migrate, resetDbForTests } from './index';
 
 const TEST_DB = path.join('/tmp', `sgv-migration-runner-regression-${process.pid}.db`);
 

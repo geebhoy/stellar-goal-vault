@@ -100,9 +100,9 @@ export function CampaignDetailPanel({
   const activeWalletNetworkPassphrase = walletNetworkPassphrase ?? null;
   const hasNetworkMismatch = Boolean(
     connectedWallet &&
-      appNetworkPassphrase &&
-      activeWalletNetworkPassphrase &&
-      appNetworkPassphrase !== activeWalletNetworkPassphrase,
+    appNetworkPassphrase &&
+    activeWalletNetworkPassphrase &&
+    appNetworkPassphrase !== activeWalletNetworkPassphrase,
   );
   const networkMismatchMessage = hasNetworkMismatch
     ? `Network mismatch: your wallet is on ${networkName({ ...(appConfig ?? {}), networkPassphrase: activeWalletNetworkPassphrase } as AppConfig)} but this app uses ${networkName(appConfig)}. Switch your Freighter network to ${networkName(appConfig)} and reconnect.`
@@ -217,7 +217,7 @@ export function CampaignDetailPanel({
   // pledge button instead of only relying on the toast.
   const selectedToken = pledgeToken || activeCampaign.assetCode;
   const availableTokens = Array.from(
-    new Set([ ...(activeCampaign.acceptedTokens ?? []), activeCampaign.assetCode ]),
+    new Set([...(activeCampaign.acceptedTokens ?? []), activeCampaign.assetCode]),
   );
 
   async function submitPledge() {
@@ -383,7 +383,7 @@ export function CampaignDetailPanel({
             </select>
           </label>
         ) : null}
-        <button type="submit" disabled={isSubmitting || !hasNetworkMismatch} >
+        <button type="submit" disabled={isSubmitting || !hasNetworkMismatch}>
           {isSubmitting ? 'Submitting…' : 'Pledge'}
         </button>
         {pledgeError ? (
@@ -415,7 +415,11 @@ export function CampaignDetailPanel({
               disabled={isSubmitting}
             />
           </label>
-          <button type="button" onClick={handleRefund} disabled={isSubmitting || hasNetworkMismatch}>
+          <button
+            type="button"
+            onClick={handleRefund}
+            disabled={isSubmitting || hasNetworkMismatch}
+          >
             Refund
           </button>
         </div>

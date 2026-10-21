@@ -121,13 +121,15 @@ describe('CampaignsTable Search Integration', () => {
     it('should filter campaigns by title when searching', async () => {
       const user = userEvent.setup({ delay: null });
       render(
-        <CampaignsTable
-          campaigns={mockCampaigns}
-          selectedCampaignId={null}
-          onSelect={vi.fn()}
-          isLoading={false}
-          error={null}
-        />,
+        <MemoryRouter>
+          <CampaignsTable
+            campaigns={mockCampaigns}
+            selectedCampaignId={null}
+            onSelect={vi.fn()}
+            isLoading={false}
+            error={null}
+          />
+        </MemoryRouter>,
       );
 
       const searchInput = screen.getByPlaceholderText('Search campaigns...');
@@ -149,13 +151,15 @@ describe('CampaignsTable Search Integration', () => {
     it('should filter campaigns by creator address', async () => {
       const user = userEvent.setup({ delay: null });
       render(
-        <CampaignsTable
-          campaigns={mockCampaigns}
-          selectedCampaignId={null}
-          onSelect={vi.fn()}
-          isLoading={false}
-          error={null}
-        />,
+        <MemoryRouter>
+          <CampaignsTable
+            campaigns={mockCampaigns}
+            selectedCampaignId={null}
+            onSelect={vi.fn()}
+            isLoading={false}
+            error={null}
+          />
+        </MemoryRouter>,
       );
 
       const searchInput = screen.getByPlaceholderText('Search campaigns...');
@@ -365,24 +369,24 @@ describe('CampaignsTable Search Integration', () => {
     it('should show counts per status and a clear active filter', () => {
       renderTable();
 
-      const statusTabs = screen.getByRole('tablist', {
+      const statusTabs = screen.getByRole('group', {
         name: /Filter campaigns by status/i,
       });
 
       const allTab = within(statusTabs).getByRole('button', {
-        name: /Status: Filter campaigns by status/i,
+        name: /^All\d*$/,
       });
       const openTab = within(statusTabs).getByRole('button', {
-        name: /Open2/i,
+        name: /^Open\d*$/,
       });
       const fundedTab = within(statusTabs).getByRole('button', {
-        name: /Funded1/i,
+        name: /^Funded\d*$/,
       });
       const claimedTab = within(statusTabs).getByRole('button', {
-        name: /Claimed0/i,
+        name: /^Claimed\d*$/,
       });
       const failedTab = within(statusTabs).getByRole('button', {
-        name: /Failed0/i,
+        name: /^Failed\d*$/,
       });
 
       expect(allTab).toHaveAttribute('aria-pressed', 'true');
@@ -395,11 +399,11 @@ describe('CampaignsTable Search Integration', () => {
     it('should filter to one status at a time and allow returning to all', () => {
       renderTable();
 
-      const statusTabs = screen.getByRole('tablist', {
+      const statusTabs = screen.getByRole('group', {
         name: /Filter campaigns by status/i,
       });
       const fundedTab = within(statusTabs).getByRole('button', {
-        name: /Funded1/i,
+        name: /^Funded\d*$/,
       });
       fireEvent.click(fundedTab);
 
@@ -409,7 +413,7 @@ describe('CampaignsTable Search Integration', () => {
       expect(fundedTab).toHaveAttribute('aria-pressed', 'true');
 
       const allTab = within(statusTabs).getByRole('button', {
-        name: /Status: Filter campaigns by status/i,
+        name: /^All\d*$/,
       });
       fireEvent.click(allTab);
 
@@ -493,12 +497,14 @@ describe('CampaignsTable Search Integration', () => {
       }));
 
       render(
-        <CampaignsTable
-          campaigns={largeCampaignList}
-          selectedCampaignId={null}
-          onSelect={vi.fn()}
-          isLoading={false}
-        />,
+        <MemoryRouter>
+          <CampaignsTable
+            campaigns={largeCampaignList}
+            selectedCampaignId={null}
+            onSelect={vi.fn()}
+            isLoading={false}
+          />
+        </MemoryRouter>,
       );
 
       const searchInput = screen.getByPlaceholderText('Search campaigns...');

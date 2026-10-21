@@ -28,6 +28,30 @@ if (typeof (globalThis as { jest?: unknown }).jest === 'undefined') {
 }
 
 /**
+ * jsdom does not implement `IntersectionObserver`, but the campaign board,
+ * timeline and contributor summary all use it for lazy loading. A no-op
+ * observer keeps those components mountable in tests; files that need to
+ * trigger an intersection stub their own implementation.
+ */
+if (typeof window.IntersectionObserver === 'undefined') {
+  class NoopIntersectionObserver implements IntersectionObserver {
+    readonly root: Element | Document | null = null;
+    readonly rootMargin: string = '';
+    readonly thresholds: ReadonlyArray<number> = [];
+
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+
+  window.IntersectionObserver =
+    NoopIntersectionObserver as unknown as typeof window.IntersectionObserver;
+}
+
+/**
  * jsdom does not implement `window.matchMedia`, but several hooks
  * (`useMediaQuery`, `useInstallPrompt`) and `App` call it while rendering.
  *

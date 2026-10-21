@@ -133,7 +133,9 @@ describe('pledges persistence — DB-level constraints (#876)', () => {
         `INSERT INTO pledges (campaign_id, contributor, amount, asset_code, created_at)
          VALUES (?, NULL, ?, ?, ?)`,
       ).run('c1', 100, 'XLM', now);
-    }).toThrow(/pledges\.contributor must be non-empty|NOT NULL constraint failed: pledges\.contributor/i);
+    }).toThrow(
+      /pledges\.contributor must be non-empty|NOT NULL constraint failed: pledges\.contributor/i,
+    );
     expect(columnIsNotNull(db, 'contributor')).toBe(true);
   });
 
@@ -161,7 +163,9 @@ describe('pledges persistence — DB-level constraints (#876)', () => {
         `INSERT INTO pledges (campaign_id, contributor, amount, asset_code, created_at)
          VALUES (?, ?, ?, NULL, ?)`,
       ).run('c1', 'GCONTRIB', 100, now);
-    }).toThrow(/pledges\.asset_code must be non-empty|NOT NULL constraint failed: pledges\.asset_code/i);
+    }).toThrow(
+      /pledges\.asset_code must be non-empty|NOT NULL constraint failed: pledges\.asset_code/i,
+    );
     expect(columnIsNotNull(db, 'asset_code')).toBe(true);
   });
 

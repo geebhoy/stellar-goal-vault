@@ -178,11 +178,7 @@ export function ContributorSummary({
 
   if (error) {
     return (
-      <section
-        ref={containerRef}
-        className="contributor-summary"
-        aria-label="Contributor summary"
-      >
+      <section ref={containerRef} className="contributor-summary" aria-label="Contributor summary">
         <div className="contributor-summary-heading">
           <h3 className="contributor-summary-title">Contributor summary</h3>
         </div>
@@ -195,11 +191,7 @@ export function ContributorSummary({
 
   if (contributors.length === 0) {
     return (
-      <section
-        ref={containerRef}
-        className="contributor-summary"
-        aria-label="Contributor summary"
-      >
+      <section ref={containerRef} className="contributor-summary" aria-label="Contributor summary">
         <div className="contributor-summary-heading">
           <h3 className="contributor-summary-title">Contributor summary</h3>
         </div>
@@ -232,11 +224,7 @@ export function ContributorSummary({
   const hasMore = contributors.length > visibleCount;
 
   return (
-    <section
-      ref={containerRef}
-      className="contributor-summary"
-      aria-label="Contributor summary"
-    >
+    <section ref={containerRef} className="contributor-summary" aria-label="Contributor summary">
       <div className="contributor-summary-heading">
         <h3 className="contributor-summary-title">Contributor summary</h3>
         <button
