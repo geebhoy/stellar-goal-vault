@@ -98,7 +98,7 @@ const ERROR_RESPONSE_FIELDS = {
   requestId: 'string',
 } as const;
 
-type FieldTypes = Record<string, 'string' | 'number' | 'object'>;
+type FieldTypes = Record<string, 'string' | 'number' | 'number_or_null' | 'object'>;
 
 function assertContract(label: string, actual: unknown, contract: FieldTypes): void {
   expect(actual, `${label} must be an object`).toEqual(expect.any(Object));
@@ -106,6 +106,13 @@ function assertContract(label: string, actual: unknown, contract: FieldTypes): v
   for (const [field, type] of Object.entries(contract)) {
     expect(field in record, `${label} is missing contract field "${field}"`).toBe(true);
     const value = record[field];
+    if (type === 'number_or_null') {
+      expect(
+        value === null || (typeof value === 'number' && Number.isFinite(value)),
+        `${label} field "${field}" must be a finite number or null (got ${typeof value})`,
+      ).toBe(true);
+      continue;
+    }
     expect(
       typeof value,
       `${label} field "${field}" must be of type ${type} (got ${typeof value})`,
@@ -191,6 +198,7 @@ describe('observability contract: success path', () => {
 
     expect(response.status).toBe(200);
     assertContract('GET /api/health body', response.body, HEALTH_FIELDS);
+    assertContract('GET /api/health indexer', response.body.indexer, INDEXER_HEALTH_FIELDS);
     expect(response.body.status).toBe('ok');
     expect(response.body.uptimeSeconds).toBeGreaterThanOrEqual(0);
     expect(response.body.database).toMatchObject({

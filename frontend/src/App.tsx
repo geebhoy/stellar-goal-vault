@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FundedConfetti } from './components/FundedConfetti';
@@ -144,6 +145,7 @@ function getNetworkName(networkPassphrase: string): string {
 function App() {
   const { id: paramId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const wallet = useWallet();
   const { toasts, addToast, dismiss } = useToast();
   const connectedWallet = wallet.publicKey;
@@ -532,7 +534,14 @@ function App() {
     }
   }
 
-  async function handleConnectWallet(walletType: string) {
+  async function handleConnectWallet(walletType?: string) {
+    if (!walletType) {
+      // The detail panel only knows that "connect" was requested; let the user
+      // pick the wallet they want to use.
+      wallet.openPicker();
+      return;
+    }
+
     const networkPassphrase = appConfig?.networkPassphrase ?? DEFAULT_NETWORK_PASSPHRASE;
     setIsConnectingWallet(true);
     try {
@@ -864,6 +873,7 @@ function App() {
               isPledgePending={pendingPledgeCampaignId === selectedCampaignId}
               isLoading={isSelectedLoading || initialLoad}
               notFoundCampaignId={invalidUrlCampaignId}
+              walletNetworkPassphrase={wallet.networkPassphrase}
               onConnectWallet={handleConnectWallet}
               onDisconnectWallet={handleDisconnectWallet}
               onPledge={handlePledge}

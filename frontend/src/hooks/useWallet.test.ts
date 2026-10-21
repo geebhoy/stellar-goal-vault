@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 const walletMocks = vi.hoisted(() => ({
@@ -35,8 +35,8 @@ describe('useWallet hook', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getLastUsedWallet as vi.Mock).mockReturnValue(null);
-    (getAdapter as vi.Mock).mockReturnValue(mockAdapter);
+    (getLastUsedWallet as unknown as Mock).mockReturnValue(null);
+    (getAdapter as unknown as Mock).mockReturnValue(mockAdapter);
   });
 
   it('returns checking status initially', () => {

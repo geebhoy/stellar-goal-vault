@@ -26,7 +26,7 @@ interface CampaignDetailPanelProps {
   isPledgePending?: boolean;
   notFoundCampaignId?: string | null;
   walletNetworkPassphrase?: string | null;
-  onConnectWallet?: () => Promise<void>;
+  onConnectWallet?: (walletType?: string) => Promise<void>;
   onDisconnectWallet?: () => void;
   onPledge?: (campaignId: string, amount: number, assetCode: string) => Promise<void>;
   onClaim?: (campaign: Campaign) => Promise<void>;
@@ -100,7 +100,7 @@ export function CampaignDetailPanel({
   // configured passphrase we must block submission and surface a recovery path.
   const appNetworkPassphrase =
     appConfig?.networkPassphrase ?? appConfig?.soroban?.networkPassphrase ?? null;
-  const activeWalletNetworkPassphrase = walletNetworkPassphrase ?? appConfig?.walletNetworkPassphrase ?? null;
+  const activeWalletNetworkPassphrase = walletNetworkPassphrase ?? null;
   const hasNetworkMismatch = Boolean(
     connectedWallet &&
       appNetworkPassphrase &&
@@ -436,7 +436,7 @@ export function CampaignDetailPanel({
       </div>
 
       <Suspense fallback={null}>
-        <ContributorSummary campaignId={activeCampaign.id} />
+        <ContributorSummary campaignId={activeCampaign.id} assetCode={activeCampaign.assetCode} />
       </Suspense>
     </section>
   );

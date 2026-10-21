@@ -12,7 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import request from 'supertest';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const TEST_DB_PATH = path.join('/tmp', `health-test-${process.pid}.db`);
 process.env.DB_PATH = TEST_DB_PATH;
@@ -20,18 +20,12 @@ process.env.CONTRACT_ID = '';
 
 // Import order matters: app must be imported after env vars are set.
 type IndexModule = typeof import('./index');
-type EventIndexerModule = typeof import('./services/eventIndexer');
-type DbModule = typeof import('./services/db');
 
 let app: IndexModule['app'];
-let getIndexerStatus: EventIndexerModule['getIndexerStatus'];
-let checkDbHealth: DbModule['checkDbHealth'];
 
 beforeAll(async () => {
   fs.rmSync(TEST_DB_PATH, { force: true });
   ({ app } = await import('./index'));
-  ({ getIndexerStatus } = await import('./services/eventIndexer'));
-  ({ checkDbHealth } = await import('./services/db'));
 
   // Initialise the store so that checkDbHealth() can find an open connection
   const { initCampaignStore } = await import('./services/campaignStore');
