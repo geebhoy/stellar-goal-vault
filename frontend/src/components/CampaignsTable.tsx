@@ -132,6 +132,7 @@ export function CampaignsTable({
         onSearchChange?.('');
       } catch (err) {
         // Preserve user input even if search fails
+        // eslint-disable-next-line no-console -- surfaced to the user via the toast layer
         console.error('Search change failed:', err);
       }
     }

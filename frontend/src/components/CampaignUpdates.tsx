@@ -65,7 +65,7 @@ function sanitizeMarkdown(markdown: string): string {
 }
 
 export function CampaignUpdates({
-  campaignId,
+  campaignId: _campaignId,
   creator,
   updates = [],
   connectedWallet = null,

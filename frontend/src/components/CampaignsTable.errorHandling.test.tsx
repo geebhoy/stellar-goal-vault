@@ -13,10 +13,12 @@ const mockCampaigns: Campaign[] = [
     assetCode: 'USDC',
     targetAmount: 100000,
     pledgedAmount: 50000,
-    deadline: '2025-12-31',
+    deadline: 1767139200,
     progress: {
       status: 'open',
       percentFunded: 50,
+      remainingAmount: 50000,
+      pledgeCount: 2,
       hoursLeft: 240,
       canPledge: true,
       canClaim: false,

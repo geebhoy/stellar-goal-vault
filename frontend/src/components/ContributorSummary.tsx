@@ -32,7 +32,7 @@ export function ContributorSummary({
   const [error, setError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(CONTRIBUTOR_INCREMENT);
   const [hasEnteredView, setHasEnteredView] = useState(false);
-  const containerRef = useRef<HTMLElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchContributors = useCallback(async () => {
@@ -114,7 +114,7 @@ export function ContributorSummary({
   if (showSkeleton) {
     return (
       <section
-        ref={containerRef as any}
+        ref={containerRef}
         className="contributor-summary"
         aria-busy="true"
         aria-label="Contributor summary"
@@ -179,7 +179,7 @@ export function ContributorSummary({
   if (error) {
     return (
       <section
-        ref={containerRef as any}
+        ref={containerRef}
         className="contributor-summary"
         aria-label="Contributor summary"
       >
@@ -196,7 +196,7 @@ export function ContributorSummary({
   if (contributors.length === 0) {
     return (
       <section
-        ref={containerRef as any}
+        ref={containerRef}
         className="contributor-summary"
         aria-label="Contributor summary"
       >
@@ -233,7 +233,7 @@ export function ContributorSummary({
 
   return (
     <section
-      ref={containerRef as any}
+      ref={containerRef}
       className="contributor-summary"
       aria-label="Contributor summary"
     >

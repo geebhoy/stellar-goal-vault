@@ -5,15 +5,12 @@ import { Campaign, AppConfig } from '../types/campaign';
 import CopyButton from './CopyButton';
 import { AddressAvatar } from './AddressAvatar';
 import { EmptyState } from './EmptyState';
-import { CampaignImage } from './CampaignImage';
 
 const ContributorSummary = lazy(() =>
   import('./ContributorSummary').then((m) => ({ default: m.ContributorSummary })),
 );
-import { Countdown } from './Countdown';
 import { useCampaignShareCard } from './CampaignShareCard';
 import { useToast } from '../hooks/useToast';
-import { ShareButtons } from './ShareButtons';
 import { useMinDisplayTime } from '../hooks/useMinDisplayTime';
 import { safeErrorMessage } from '../lib/signingErrors';
 
@@ -72,7 +69,7 @@ export function CampaignDetailPanel({
   connectedWallet = null,
   isConnectingWallet = false,
   isLoading = false,
-  isPledgePending = false,
+  isPledgePending: _isPledgePending = false,
   notFoundCampaignId = null,
   walletNetworkPassphrase = null,
   onConnectWallet = async () => {},
@@ -89,8 +86,8 @@ export function CampaignDetailPanel({
   const [pledgeSuccess, setPledgeSuccess] = useState(false);
   const pledgeSuccessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [bannerImageError, setBannerImageError] = useState(false);
-  const walletReady = appConfig?.walletIntegrationReady ?? false;
-  const { downloadPng, toDataUrl } = useCampaignShareCard();
+
+  const { downloadPng } = useCampaignShareCard();
   const { addToast } = useToast();
   const pledgeErrorRef = useRef<HTMLDivElement | null>(null);
   const pledgeSuccessRef = useRef<HTMLDivElement | null>(null);

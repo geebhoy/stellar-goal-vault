@@ -52,8 +52,8 @@ import { submitRefundTransaction } from './services/soroban';
 import { useWallet } from './hooks/useWallet';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useToast } from './hooks/useToast';
+import type { WalletType } from './lib/wallet';
 import { useOpenGraph } from './hooks/useOpenGraph';
-import { useCampaignShareCard } from './components/CampaignShareCard';
 import { didCampaignBecomeFunded } from './lib/fundingCelebration';
 import { safeErrorMessage } from './lib/signingErrors';
 import { appendUniqueCampaigns } from './lib/campaignListPagination';
@@ -390,7 +390,6 @@ function App() {
     await Promise.all([refreshHistory(campaignId), refreshSelectedCampaign(campaignId)]);
   }
 
-  const { toDataUrl } = useCampaignShareCard();
 
   const initialParamIdRef = useRef(paramId);
 
@@ -545,7 +544,7 @@ function App() {
     const networkPassphrase = appConfig?.networkPassphrase ?? DEFAULT_NETWORK_PASSPHRASE;
     setIsConnectingWallet(true);
     try {
-      await wallet.connect(walletType as any, networkPassphrase);
+      await wallet.connect(walletType as WalletType, networkPassphrase);
       addToast(`Wallet connected: ${wallet.publicKey?.slice(0, 16)}...`, 'success');
     } finally {
       setIsConnectingWallet(false);

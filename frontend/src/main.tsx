@@ -31,6 +31,7 @@ if ('serviceWorker' in navigator) {
       },
       onOfflineReady() {
         // SW installed and offline caching is active. Could show a toast here.
+        // eslint-disable-next-line no-console -- one-off startup notice
         console.info('[PWA] App is ready for offline use.');
       },
     });

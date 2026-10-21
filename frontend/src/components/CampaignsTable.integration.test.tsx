@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { CampaignsTable } from './CampaignsTable';
@@ -15,10 +15,12 @@ describe('CampaignsTable Search Integration', () => {
       assetCode: 'USDC',
       targetAmount: 100000,
       pledgedAmount: 50000,
-      deadline: '2025-12-31',
+      deadline: 1767139200,
       progress: {
         status: 'open',
         percentFunded: 50,
+        remainingAmount: 50000,
+        pledgeCount: 1,
         hoursLeft: 240,
         canPledge: true,
         canClaim: false,
@@ -35,10 +37,12 @@ describe('CampaignsTable Search Integration', () => {
       assetCode: 'native',
       targetAmount: 50000,
       pledgedAmount: 30000,
-      deadline: '2025-11-30',
+      deadline: 1767139200,
       progress: {
         status: 'open',
         percentFunded: 60,
+        remainingAmount: 20000,
+        pledgeCount: 1,
         hoursLeft: 120,
         canPledge: true,
         canClaim: false,
@@ -55,10 +59,12 @@ describe('CampaignsTable Search Integration', () => {
       assetCode: 'USDC',
       targetAmount: 20000,
       pledgedAmount: 20000,
-      deadline: '2025-10-31',
+      deadline: 1761955200,
       progress: {
         status: 'funded',
         percentFunded: 100,
+        remainingAmount: 0,
+        pledgeCount: 2,
         hoursLeft: 0,
         canPledge: false,
         canClaim: true,
@@ -121,7 +127,6 @@ describe('CampaignsTable Search Integration', () => {
           onSelect={vi.fn()}
           isLoading={false}
           error={null}
-          error={null}
         />,
       );
 
@@ -131,7 +136,9 @@ describe('CampaignsTable Search Integration', () => {
       await user.type(searchInput, 'rocket');
 
       // Advance past debounce delay (300ms)
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should only show "Build a Rocket Ship"
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -148,7 +155,6 @@ describe('CampaignsTable Search Integration', () => {
           onSelect={vi.fn()}
           isLoading={false}
           error={null}
-          error={null}
         />,
       );
 
@@ -157,7 +163,9 @@ describe('CampaignsTable Search Integration', () => {
       // Search for creator
       await user.type(searchInput, 'writer');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Write a Book')).toBeInTheDocument();
       expect(screen.queryByText('Build a Rocket Ship')).not.toBeInTheDocument();
@@ -172,7 +180,9 @@ describe('CampaignsTable Search Integration', () => {
       // Search for ID
       await user.type(searchInput, 'camp-002');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Create a Game')).toBeInTheDocument();
       expect(screen.queryByText('Build a Rocket Ship')).not.toBeInTheDocument();
@@ -188,7 +198,9 @@ describe('CampaignsTable Search Integration', () => {
       // Search with uppercase
       await user.type(searchInput, 'BUILD');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
     });
@@ -201,7 +213,9 @@ describe('CampaignsTable Search Integration', () => {
 
       // First search
       await user.type(searchInput, 'game');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Create a Game')).toBeInTheDocument();
 
@@ -209,7 +223,9 @@ describe('CampaignsTable Search Integration', () => {
       await user.clear(searchInput);
       await user.type(searchInput, 'book');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Write a Book')).toBeInTheDocument();
       expect(screen.queryByText('Create a Game')).not.toBeInTheDocument();
@@ -239,10 +255,14 @@ describe('CampaignsTable Search Integration', () => {
 
       // Type quickly: r, o, c, k, e, t
       await user.type(searchInput, 'ro');
-      vi.advanceTimersByTime(100);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
 
       await user.type(searchInput, 'cke');
-      vi.advanceTimersByTime(100);
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
 
       // Timer should still be pending
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -252,7 +272,9 @@ describe('CampaignsTable Search Integration', () => {
       await user.type(searchInput, 't');
 
       // Complete the debounce
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Now should filter
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -285,7 +307,9 @@ describe('CampaignsTable Search Integration', () => {
 
       // Search for something
       await user.type(searchInput, 'rocket');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
       expect(screen.queryByText('Create a Game')).not.toBeInTheDocument();
@@ -294,7 +318,9 @@ describe('CampaignsTable Search Integration', () => {
       const clearButton = screen.getByRole('button', { name: 'Clear search' });
       await user.click(clearButton);
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // All campaigns should be visible again
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -314,7 +340,9 @@ describe('CampaignsTable Search Integration', () => {
       // First filter by asset
       await user.selectOptions(assetFilter, 'USDC');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should show "Build a Rocket Ship" and "Write a Book" (both USDC)
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -323,7 +351,9 @@ describe('CampaignsTable Search Integration', () => {
 
       // Now search within USDC campaigns
       await user.type(searchInput, 'rocket');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should only show "Build a Rocket Ship"
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -399,7 +429,9 @@ describe('CampaignsTable Search Integration', () => {
 
       // Search for non-existent campaign
       await user.type(searchInput, 'nonexistent');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should show no results message
       // Note: Exact message depends on component implementation
@@ -414,12 +446,16 @@ describe('CampaignsTable Search Integration', () => {
 
       // Type and then clear
       await user.type(searchInput, 'rocket');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       const clearButton = screen.getByRole('button', { name: 'Clear search' });
       await user.click(clearButton);
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // All campaigns should be visible
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
@@ -439,12 +475,16 @@ describe('CampaignsTable Search Integration', () => {
         description: `Description ${i + 1}`,
         creator: `CREATOR${i}@stellar.org`,
         assetCode: i % 2 === 0 ? 'USDC' : 'native',
+        acceptedTokens: ['USDC'],
+        createdAt: Math.floor(Date.now() / 1000),
         targetAmount: 100000 * (i + 1),
         pledgedAmount: 50000 * (i + 1),
-        deadline: '2025-12-31',
+        deadline: 1767139200,
         progress: {
           status: 'open' as const,
           percentFunded: (i % 100) + 1,
+          remainingAmount: 50000 * (i + 1),
+          pledgeCount: 1,
           hoursLeft: 240,
           canPledge: true,
           canClaim: false,
@@ -465,7 +505,9 @@ describe('CampaignsTable Search Integration', () => {
 
       // Search should still work smoothly
       await user.type(searchInput, 'campaign 50');
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should find "Campaign 50"
       expect(screen.getByText('Campaign 50')).toBeInTheDocument();
@@ -493,7 +535,9 @@ describe('CampaignsTable Search Integration', () => {
       // Type with keyboard
       await user.keyboard('rocket');
 
-      vi.advanceTimersByTime(350);
+      act(() => {
+        vi.advanceTimersByTime(350);
+      });
 
       // Should work as expected
       expect(screen.getByText('Build a Rocket Ship')).toBeInTheDocument();
