@@ -93,8 +93,8 @@ beforeEach(() => {
   db.prepare(`DELETE FROM campaigns`).run();
 });
 
-const CREATOR = `G${'A'.repeat(55)}`;
-const CONTRIBUTOR = `G${'B'.repeat(55)}`;
+const CREATOR = 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT';
+const CONTRIBUTOR = 'GANQEYT3WHNUF6WOV3KQOQGAUBTX73MTG6HDGGPBRIML6BULYVBYRLRU';
 
 async function post(apiPath: string, body: unknown) {
   const response = await fetch(`${baseUrl}${apiPath}`, {
@@ -805,8 +805,8 @@ describe('GET /api/stats', () => {
 });
 
 describe('POST /api/campaigns/:id/pledges with Idempotency-Key', () => {
-  const CONTRIBUTOR_C = `G${'D'.repeat(55)}`;
-  const CONTRIBUTOR_D = `G${'E'.repeat(55)}`;
+  const CONTRIBUTOR_C = 'GBMZX5SKZ4HX4A5JLEMFFX543RTWMS6I6KMM7S4PW3EGIIPD2PSRFWBV';
+  const CONTRIBUTOR_D = 'GAKS64HHCZRMTWMVBIZHEPDEZVYRCTWC3OARV4LW26ZYM5B4BE3X2FMU';
 
   async function createTestCampaign() {
     const createRes = await post('/api/campaigns', {

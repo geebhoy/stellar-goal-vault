@@ -33,7 +33,7 @@ const stellarAddressSchema = z
   .regex(/^G[A-Z2-7]{55}$/)
   .openapi({
     description: 'A 56-character Stellar public key (G...).',
-    example: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    example: 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT',
   });
 
 const assetCodeSchema = z
@@ -283,7 +283,7 @@ const campaignIdParamSchema = campaignIdSchema.openapi({
 
 const contributorAddressParamSchema = stellarAddressSchema.openapi({
   param: { name: 'address', in: 'path', required: true },
-  example: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  example: 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT',
 });
 
 const campaignListResponseSchema = z

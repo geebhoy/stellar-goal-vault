@@ -80,7 +80,7 @@ describe('seed workflow database regression', () => {
           `INSERT INTO pledges (campaign_id, contributor, amount, asset_code, created_at, refunded_at, transaction_hash)
            VALUES (?, ?, ?, ?, ?, NULL, NULL)`,
         )
-        .run('missing-campaign', `G${'Z'.repeat(55)}`, 10, 'USDC', 1_750_000_000),
+        .run('missing-campaign', 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT', 10, 'USDC', 1_750_000_000),
     ).toThrow(/FOREIGN KEY/i);
   });
 
@@ -95,7 +95,7 @@ describe('seed workflow database regression', () => {
         )
         .run(
           '1',
-          `G${'A'.repeat(55)}`,
+          'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT',
           'dup',
           'dup',
           '["USDC"]',
@@ -127,7 +127,7 @@ describe('seed workflow database regression', () => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
         ).run(
           'rollback-temp',
-          `G${'R'.repeat(55)}`,
+          'GANQEYT3WHNUF6WOV3KQOQGAUBTX73MTG6HDGGPBRIML6BULYVBYRLRU',
           'temp',
           'temp',
           '["USDC"]',
@@ -157,11 +157,11 @@ describe('seed workflow database regression', () => {
     db.prepare(
       `INSERT INTO notifications (campaign_id, type, title, body, target_wallet, actor_wallet, is_read, created_at)
        VALUES (?, 'new_pledge', 't', 'b', ?, NULL, 0, ?)`,
-    ).run('1', `G${'N'.repeat(55)}`, 1_750_000_000);
+    ).run('1', 'GAXCCOIO6QRZRJAIM6DQ3CVB4QA3RFVO35UXON4WWYY5GITC4QDR2F3W', 1_750_000_000);
     db.prepare(
       `INSERT INTO campaign_comments (campaign_id, author, content, created_at, deleted_at)
        VALUES (?, ?, ?, ?, NULL)`,
-    ).run('1', `G${'M'.repeat(55)}`, 'stale comment', 1_750_000_000);
+    ).run('1', 'GBMZX5SKZ4HX4A5JLEMFFX543RTWMS6I6KMM7S4PW3EGIIPD2PSRFWBV', 'stale comment', 1_750_000_000);
     db.prepare(
       `INSERT INTO campaign_events (campaign_id, event_type, timestamp, actor, amount, metadata, blockchain_metadata)
        VALUES (?, 'pledge', ?, NULL, 1, NULL, NULL)`,

@@ -44,8 +44,8 @@ let getCampaignHistory: EventHistoryModule['getCampaignHistory'];
 let eventHistoryModule: EventHistoryModule;
 
 // ── Test constants ────────────────────────────────────────────────────────────
-const CREATOR = `G${'A'.repeat(55)}`;
-const CONTRIBUTOR = `G${'B'.repeat(55)}`;
+const CREATOR = 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT';
+const CONTRIBUTOR = 'GANQEYT3WHNUF6WOV3KQOQGAUBTX73MTG6HDGGPBRIML6BULYVBYRLRU';
 const future = (offset = 86400) => Math.floor(Date.now() / 1000) + offset;
 const past = (offset = 86400) => Math.floor(Date.now() / 1000) - offset;
 

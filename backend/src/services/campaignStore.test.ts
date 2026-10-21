@@ -26,9 +26,9 @@ let addPledge: CampaignStoreModule['addPledge'];
 let claimCampaign: CampaignStoreModule['claimCampaign'];
 let getCampaignAnalytics: CampaignStoreModule['getCampaignAnalytics'];
 
-const CREATOR = `G${'A'.repeat(55)}`;
-const CONTRIBUTOR = `G${'B'.repeat(55)}`;
-const CONTRIBUTOR2 = `G${'C'.repeat(55)}`;
+const CREATOR = 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT';
+const CONTRIBUTOR = 'GANQEYT3WHNUF6WOV3KQOQGAUBTX73MTG6HDGGPBRIML6BULYVBYRLRU';
+const CONTRIBUTOR2 = 'GAXCCOIO6QRZRJAIM6DQ3CVB4QA3RFVO35UXON4WWYY5GITC4QDR2F3W';
 const TX_HASH = 'a'.repeat(64);
 
 // Deterministic time control for deadline and lifecycle tests

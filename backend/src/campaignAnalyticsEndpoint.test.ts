@@ -29,9 +29,9 @@ let addPledge: (typeof import('./services/campaignStore'))['addPledge'];
 let initCampaignStore: (typeof import('./services/campaignStore'))['initCampaignStore'];
 let getDb: (typeof import('./services/db'))['getDb'];
 
-const CREATOR = `G${'A'.repeat(55)}`;
-const CONTRIBUTOR_A = `G${'B'.repeat(55)}`;
-const CONTRIBUTOR_B = `G${'C'.repeat(55)}`;
+const CREATOR = 'GBQRRH556UAOUNMCISIMEX2UPJQQ5MJ5NMHHY6TNCNCW52P5BWIVW6YT';
+const CONTRIBUTOR_A = 'GANQEYT3WHNUF6WOV3KQOQGAUBTX73MTG6HDGGPBRIML6BULYVBYRLRU';
+const CONTRIBUTOR_B = 'GAXCCOIO6QRZRJAIM6DQ3CVB4QA3RFVO35UXON4WWYY5GITC4QDR2F3W';
 
 function nowInSeconds(): number {
   return Math.floor(Date.now() / 1000);
