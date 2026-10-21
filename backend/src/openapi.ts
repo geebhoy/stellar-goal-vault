@@ -604,6 +604,7 @@ registry.registerPath({
       description: 'Service is degraded',
       content: { 'application/json': { schema: registeredSchemas.HealthResponse } },
     },
+    500: internalServerErrorResponse,
   },
 });
 
@@ -623,6 +624,7 @@ registry.registerPath({
       description: 'One or more components are unhealthy',
       content: { 'application/json': { schema: registeredSchemas.DeepHealthResponse } },
     },
+    500: internalServerErrorResponse,
   },
 });
 
