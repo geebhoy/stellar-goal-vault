@@ -10,7 +10,9 @@ describe('CampaignDetailPanel - Mobile Touch Targets', () => {
     description: 'A test campaign for mobile responsiveness',
     creator: 'GCREATORADDRESSEXAMPLE1234567890ABCDEF',
     assetCode: 'USDC',
-    acceptedTokens: ['USDC'],
+    // Two accepted assets so the campaign renders the asset selector, which the
+    // mobile touch-target assertions below exercise.
+    acceptedTokens: ['USDC', 'XLM'],
     targetAmount: 1000,
     pledgedAmount: 500,
     createdAt: Math.floor(Date.now() / 1000),
